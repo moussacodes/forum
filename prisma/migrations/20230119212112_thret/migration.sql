@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Comment" ALTER COLUMN "likes" SET DEFAULT 0,
+ALTER COLUMN "dislikes" SET DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "thread" ALTER COLUMN "likes" SET DEFAULT 0,
+ALTER COLUMN "dislikes" SET DEFAULT 0,
+ALTER COLUMN "views" SET DEFAULT 0;
