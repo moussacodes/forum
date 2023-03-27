@@ -4,9 +4,9 @@ services:
     image: postgres:14.1-alpine
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=qgp0SCY0xtPgMcdB9anaibuqFM0Y1JsHKhFH7BTiqJAS1Y54aL
-      - POSTGRES_DB=forum_site
+      - POSTGRES_USER=
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DB=
     ports:
       - '5432:5432'
     volumes:
