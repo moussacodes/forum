@@ -42,4 +42,4 @@ $ npm run test:cov
 
 ## Stay in touch
 
-- Author - [moussaTayeb](https://github.com/moussaTayeb)
+- Author - [duckduckcodes](https://github.com/duckduckcodes)

@@ -2,7 +2,7 @@
 /dist
 /node_modules
 .env
-
+BADGE.md
 # Logs
 logs
 *.log
