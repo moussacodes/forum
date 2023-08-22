@@ -9,7 +9,6 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { ThreadModule } from './thread/thread.module';
 import { CommentModule } from './comment/comment.module';
-import { LoggerModule } from './logs/logs.module';
 import helmet from 'helmet';
 import { AuthController } from './auth/auth.controller';
 import { ThreadController } from './thread/thread.controller';
@@ -30,8 +29,7 @@ import { BadgeModule } from './badge/badge.module';
     PrismaModule,
     ThreadModule,
     CommentModule,
-    LoggerModule,
-    VerifModule,
+     VerifModule,
     BadgeModule,
   ],
   controllers: [AppController],

@@ -24,7 +24,7 @@ model User {
   localization   String?
   refreshToken   String?
   verified       Boolean   @default(false)
-  badge          String
+  badge          Int    @default(0)
 }
 
 model thread {

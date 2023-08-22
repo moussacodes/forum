@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "badge" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "verified" BOOLEAN NOT NULL DEFAULT false;

@@ -43,3 +43,6 @@ $ npm run test:cov
 ## Stay in touch
 
 - Author - [duckduckcodes](https://github.com/duckduckcodes)
+
+
+>   P1000: remove local postgres in your computer
