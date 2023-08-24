@@ -42,36 +42,4 @@ export class CommentController {
   ) {
     return await this.commentService.updateComment(comentDto, commentId);
   }
-
-  @Post('/:id/like')
-  async likePost(
-    @Param('id') id: string,
-    @Body() commentDto: UpdateCommentDto,
-  ) {
-    return await this.commentService.likeComment(id, commentDto);
-  }
-
-  @Post('/:id/dislike')
-  async dislikePost(
-    @Param('id') id: string,
-    @Body() commentDto: UpdateCommentDto,
-  ) {
-    return await this.commentService.dislikeComment(id, commentDto);
-  }
-
-  @Delete('/:id/like')
-  async removeLike(
-    @Param('id') id: string,
-    @Body() commentDto: UpdateCommentDto,
-  ) {
-    return await this.commentService.removeLike(id, commentDto);
-  }
-
-  @Delete('/:id/dislike')
-  async removeDislike(
-    @Param('id') id: string,
-    @Body() commentDto: UpdateCommentDto,
-  ) {
-    return await this.commentService.removeDislike(id, commentDto);
-  }
 }

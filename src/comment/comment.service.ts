@@ -8,7 +8,11 @@ import { UpdateCommentDto } from './dto/updatecomment.dto';
 export class CommentService {
   constructor(private prisma: PrismaService) {}
 
-  async creatComment(comentDto: UpdateCommentDto, threadId: string, usersId: string) {
+  async creatComment(
+    comentDto: UpdateCommentDto,
+    threadId: string,
+    usersId: string,
+  ) {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
@@ -22,8 +26,6 @@ export class CommentService {
           userId: user.id,
           threadId: threadId,
           modified: false,
-          likes: 0,
-          dislikes: 0,
         },
       });
 
@@ -53,12 +55,18 @@ export class CommentService {
 
   async getAllCommentsOfThread(threadId: string) {
     try {
-      const comments = this.prisma.comment.findMany({
+      const thread = this.prisma.thread.findFirst({
         where: {
-          threadId,
+          id: threadId,
         },
       });
-      return comments;
+      return thread.coments;
+      // const comments = this.prisma.comment.findMany({
+      //   where: {
+      //     threadId,
+      //   },
+      // });
+      // return comments;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P1008') {
@@ -80,8 +88,6 @@ export class CommentService {
         },
         data: {
           content: comentDto.content,
-          likes: comentDto.likes,
-          dislikes: comentDto.dislikes,
           modified: true,
         },
       });
@@ -98,66 +104,4 @@ export class CommentService {
       }
     }
   }
-
-  async likeComment(id: string, commentDto: UpdateCommentDto) {
-    try {
-      //should check from front end if post was liked or not
-      const comments = await this.prisma.comment.update({
-        where: {
-          id,
-        },
-        data: {
-          likes: { increment: 1 },
-        },
-      });
-      return comments;
-    } catch (error) {}
-  }
-
-  async dislikeComment(id: string, commentDto: UpdateCommentDto) {
-    try {
-      let newDisLikes = commentDto.dislikes + 1; //should check from front end if post was liked or not
-      const comments = await this.prisma.comment.update({
-        where: {
-          id,
-        },
-        data: {
-          dislikes: { increment: 1 },
-        },
-      });
-      return comments;
-    } catch (error) {}
-  }
-
-  async removeLike(id: string, commentDto: UpdateCommentDto) {
-    try {
-      let newLikes = commentDto.likes - 1; //should check from front end if post was liked or not
-      const comments = await this.prisma.comment.update({
-        where: {
-          id,
-        },
-        data: {
-          likes: { decrement: 1 },
-        },
-      });
-      return comments;
-    } catch (error) {}
-  }
-
-  async removeDislike(id: string, commentDto: UpdateCommentDto) {
-    try {
-      let newDisLikes = commentDto.dislikes - 1; //should check from front end if post was liked or not
-      const comments = await this.prisma.comment.update({
-        where: {
-          id,
-        },
-        data: {
-          dislikes: { decrement: 1 },
-        },
-      });
-      return comments;
-    } catch (error) {}
-  }
 }
-
-// TODO:    maybe i'll make it like reddit where likes and dislikes are counted together and value can be negative

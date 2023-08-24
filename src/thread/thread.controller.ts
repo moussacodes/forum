@@ -15,7 +15,7 @@ import { ThreadDto } from './dto/thread.dto';
 import { ThreadService } from './thread.service';
 import { GetUser } from 'src/auth/decorators';
 import { UpdateThreadDto } from './dto';
-import { thread } from '@prisma/client';
+import { User, thread } from '@prisma/client';
 
 @UseGuards(JwtGuard)
 @Controller('thread')
@@ -29,10 +29,10 @@ export class ThreadController {
 
   @Patch(':id')
   async updateThread(
-    @Param('id', ParseIntPipe) id: string,
-    @Body() updateTransactionDto: UpdateThreadDto,
+    @Param('id') id: string,
+    @Body() updateThreadDto: UpdateThreadDto,
   ): Promise<thread> {
-    return await this.threadService.updateThread(updateTransactionDto, id);
+    return await this.threadService.updateThread(updateThreadDto, id);
   }
 
   @Get(':id')
@@ -40,7 +40,22 @@ export class ThreadController {
     return await this.threadService.getOneThread(id);
   }
 
-  
+  @Get('date') //yyyy-mm-dd
+  async getAllThreadsOfLastWeek(): Promise<thread[]> {
+    return await this.threadService.getAllThreadsOfLastWeek();
+  }
+
+  @Get('tag/:tag')
+  async getAllThreadsByTag(@Param('tag') tag: string): Promise<thread[]> {
+    return await this.threadService.getAllThreadsByTag(tag);
+  }
+
+  @Get('user/:username') //yyyy-mm-dd
+  async getAllThreadsByUser(
+    @Param('username') username: string,
+  ): Promise<thread[]> {
+    return await this.threadService.getAllThreadsByUser(username);
+  }
 
   @Delete(':id')
   async deleteThread(@Param('id') id: string) {
@@ -56,32 +71,19 @@ export class ThreadController {
     return await this.threadService.getAllThreads(pageNb);
   }
 
-  @Post('/like/:id')
-  async likePost(@Param('id') id: string, @Body() threadDto: UpdateThreadDto) {
-    return await this.threadService.likePost(id, threadDto);
+  @Post('like/:threadId')
+  async likeThread(
+    @Param('threadId') threadId: string,
+    @GetUser() user: User,
+  ) {
+    return await this.threadService.likeThread(threadId, user);
   }
 
-  @Post('/dislike/:id')
-  async dislikePost(
-    @Param('id') id: string,
-    @Body() threadDto: UpdateThreadDto,
+  @Delete('like/:threadId')
+  async dislikeThread(
+    @Param('threadId') threadId: string,
+    @GetUser() user: User,
   ) {
-    return await this.threadService.dislikePost(id, threadDto);
-  }
-
-  @Delete('/like/:id')
-  async removeLike(
-    @Param('id') id: string,
-    @Body() threadDto: UpdateThreadDto,
-  ) {
-    return await this.threadService.removeLike(id, threadDto);
-  }
-
-  @Delete('/dislike/:id')
-  async removeDislike(
-    @Param('id') id: string,
-    @Body() threadDto: UpdateThreadDto,
-  ) {
-    return await this.threadService.removeDislike(id, threadDto);
+    return await this.threadService.dislikeThread(threadId, user);
   }
 }

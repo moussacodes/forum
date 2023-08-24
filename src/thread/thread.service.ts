@@ -5,6 +5,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateThreadDto } from './dto';
 import { ThreadDto } from './dto/thread.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class ThreadService {
@@ -19,12 +20,66 @@ export class ThreadService {
         data: {
           title: updateThread.title,
           content: updateThread.content,
+          tags: updateThread.topics,
           modified: true,
           //set modified to true, after starting the database
         },
       });
       return thread;
-    } catch (error) {}
+    } catch (error) {
+      throw new Error(`Error retrieving threads: ${error.message}`);
+    }
+  }
+  async getAllThreadsOfLastWeek() {
+    try {
+      const currentDate = new Date();
+      const oneWeekAgo = new Date(currentDate);
+      oneWeekAgo.setDate(currentDate.getDate() - 7); // Calculate one week ago
+
+      const threads = await this.prisma.thread.findMany({
+        where: {
+          createdAt: {
+            gte: oneWeekAgo,
+            lte: currentDate,
+          },
+        },
+      });
+
+      return threads;
+    } catch (error) {
+      throw new Error(`Error retrieving threads: ${error.message}`);
+    }
+  }
+
+  async getAllThreadsByUser(username: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          username,
+        },
+        include: {
+          threads: true,
+        },
+      });
+      return user.threads;
+    } catch (error) {
+      throw new Error(`Error retrieving threads: ${error.message}`);
+    }
+  }
+
+  async getAllThreadsByTag(tag: string) {
+    try {
+      const threads = await this.prisma.thread.findMany({
+        where: {
+          tags: {
+            has: tag,
+          },
+        },
+      });
+      return threads;
+    } catch (error) {
+      throw new Error(`Error retrieving threads: ${error.message}`);
+    }
   }
 
   async getOneThread(id) {
@@ -55,7 +110,7 @@ export class ThreadService {
           id,
         },
       });
-      return thread;
+      return 'thread was deleted succesfully';
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P1008') {
@@ -81,6 +136,7 @@ export class ThreadService {
           title: threadDto.title,
           content: threadDto.content,
           coments: undefined,
+          tags: threadDto.topics,
           userId: user.id,
           views: 0,
         },
@@ -101,6 +157,9 @@ export class ThreadService {
 
   async getAllThreads(pageNb: number) {
     try {
+      if (pageNb < 1) {
+        throw "this page doesn't exist";
+      }
       let threadNumber = 25 * (pageNb - 1);
       const threads = await this.prisma.thread.findMany({
         skip: threadNumber,
@@ -121,63 +180,186 @@ export class ThreadService {
     }
   }
 
-  async likePost(id: string, threadDto: UpdateThreadDto) {
-    try {
-      // let newLikes = threadDto.likes + 1; //should check from front end if post was liked or not
-      const threads = await this.prisma.thread.update({
+  // async toggleLikeThread(threadId: string, userId: string) {
+  //   const user = await this.prisma.user.findUnique({
+  //     where: {
+  //       id: userId,
+  //     },
+  //   });
+
+  //   if (!user) {
+  //     throw new Error('User not found');
+  //   }
+
+  //   const isLiked = user.likedThreads.includes(threadId);
+
+  //   if (isLiked) {
+  //     // User has already liked the thread, so dislike it
+  //     await this.prisma.user.update({
+  //       where: {
+  //         id: userId,
+  //       },
+  //       data: {
+  //         likedThreads: user.likedThreads.filter((likedThreadId) => likedThreadId !== threadId),
+  //       },
+  //     });
+  //     await this.prisma.thread.update({
+  //       where: {
+  //         id: threadId,
+  //       },
+  //       data: {
+  //         reactionCount: {
+  //           decrement: 1,
+  //         },
+  //       },
+  //     });
+  //   } else {
+  //     // User has not liked the thread, so like it
+  //     await this.prisma.user.update({
+  //       where: {
+  //         id: userId,
+  //       },
+  //       data: {
+  //         likedThreads: [...user.likedThreads, threadId],
+  //       },
+  //     });
+  //     await this.prisma.thread.update({
+  //       where: {
+  //         id: threadId,
+  //       },
+  //       data: {
+  //         reactionCount: {
+  //           increment: 1,
+  //         },
+  //       },
+  //     });
+  //   }
+  // }
+
+  async likeThread(threadId: string, updateUser: User) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: updateUser.id,
+      },
+      select: {
+        likedThreads: true,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (!user.likedThreads.includes(threadId)) {
+      // User has not liked the thread, so like it
+      await this.prisma.user.update({
         where: {
-          id,
+          id: updateUser.id,
+          email: updateUser.email,
+          username: updateUser.username,
         },
         data: {
-          likes: { increment: 1 },
+          likedThreads: [...user.likedThreads, threadId],
         },
       });
-      return threads;
-    } catch (error) {}
+      await this.prisma.thread.update({
+        where: {
+          id: threadId,
+        },
+        data: {
+          reactionCount: {
+            increment: 1,
+          },
+        },
+      });
+    } else {
+      await this.prisma.user.update({
+        where: {
+          id: updateUser.id,
+          email: updateUser.email,
+          username: updateUser.username,
+        },
+        data: {
+          likedThreads: user.likedThreads.filter(
+            (likedThreadId) => likedThreadId !== threadId,
+          ),
+        },
+      });
+      await this.prisma.thread.update({
+        where: {
+          id: threadId,
+        },
+        data: {
+          reactionCount: {
+            decrement: 1,
+          },
+        },
+      });
+    }
   }
 
-  async dislikePost(id: string, threadDto: UpdateThreadDto) {
-    try {
-      //should check from front end if post was liked or not
-      const threads = await this.prisma.thread.update({
-        where: {
-          id,
-        },
-        data: {
-          dislikes: { increment: 1 },
-        },
-      });
-      return threads;
-    } catch (error) {}
-  }
+  async dislikeThread(threadId: string, updateUser: User) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: updateUser.id,
+      },
+      select: {
+        dislikedThreads: true,
+      },
+    });
 
-  async removeLike(id: string, threadDto: UpdateThreadDto) {
-    try {
-      //should check from front end if post was liked or not
-      const threads = await this.prisma.thread.update({
-        where: {
-          id,
-        },
-        data: {
-          likes: { decrement: 1 },
-        },
-      });
-      return threads;
-    } catch (error) {}
-  }
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-  async removeDislike(id: string, threadDto: UpdateThreadDto) {
-    try {
-      //should check from front end if post was liked or not
-      const threads = await this.prisma.thread.update({
+    if (user.dislikedThreads.includes(threadId)) {
+      // User has disliked the thread, so undislike it
+      await this.prisma.user.update({
         where: {
-          id,
+          id: updateUser.id,
+          email: updateUser.email,
+          username: updateUser.username,
         },
         data: {
-          dislikes: { decrement: 1 },
+          dislikedThreads: user.dislikedThreads.filter(
+            (dislikedThreadId) => dislikedThreadId !== threadId,
+          ),
         },
       });
-      return threads;
-    } catch (error) {}
+      await this.prisma.thread.update({
+        where: {
+          id: threadId,
+        },
+        data: {
+          reactionCount: {
+            increment: 1,
+          },
+        },
+      });
+    } else {
+      await this.prisma.user.update({
+        where: {
+          id: updateUser.id,
+          email: updateUser.email,
+          username: updateUser.username,
+        },
+        data: {
+          dislikedThreads: [...user.dislikedThreads, threadId],
+        },
+      });
+      await this.prisma.thread.update({
+        where: {
+          id: threadId,
+        },
+        data: {
+          reactionCount: {
+            decrement: 1,
+          },
+        },
+      });
+    }
   }
 }
+
+
+// implemented like, dislike, functionality, FINALLLLLLLY:!!!

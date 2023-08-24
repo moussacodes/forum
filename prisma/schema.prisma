@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,48 +8,52 @@ datasource db {
 }
 
 model User {
-  id             String    @id @unique @default(cuid())
-  pfp            String?
-  bio            String?
-  username       String    @unique
-  email          String    @unique
-  hashedPassword String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @default(now()) @updatedAt
-  threads        thread[]
-  coments        Comment[]
-  localization   String?
-  refreshToken   String?
-  verified       Boolean   @default(false)
-  badge          Int    @default(0)
+  id              String    @id @unique @default(cuid())
+  pfp             String?
+  bio             String?
+  username        String    @unique
+  email           String    @unique
+  hashedPassword  String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  localization    String?
+  refreshToken    String?
+  verified        Boolean   @default(false)
+  badge           Int       @default(0)
+  socialLinks     String[]  @default([])
+  likedThreads    String[]  @default([])
+  dislikedThreads String[]
+  likedComments   String[]  @default([])
+  coments         Comment[]
+  threads         thread[]
 }
 
 model thread {
-  id        String    @id @unique @default(cuid())
-  title     String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  content   String
-  author    User      @relation(fields: [userId], references: [id])
-  coments   Comment[]
-  tags      String[]
-  likes     Int?      @default(0)
-  dislikes  Int?      @default(0)
-  modified  Boolean   @default(false)
-  userId    String
-  views     Int       @default(0)
+  id            String    @id @unique @default(cuid())
+  title         String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  content       String
+  tags          String[]
+  reactionCount Int       @default(0)
+  modified      Boolean   @default(false)
+  userId        String
+  views         Int       @default(0)
+  featured      Boolean   @default(false)
+  statues       String    @default("open")
+  coments       Comment[]
+  author        User      @relation(fields: [userId], references: [id])
 }
 
 model Comment {
-  id        String   @id @unique @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  modified  Boolean  @default(false)
-  userId    String
-  author    User     @relation(fields: [userId], references: [id])
-  likes     Int?     @default(0)
-  dislikes  Int?     @default(0)
-  thread    thread   @relation(fields: [threadId], references: [id])
-  threadId  String
+  id            String   @id @unique @default(cuid())
+  content       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  modified      Boolean  @default(false)
+  userId        String
+  reactionCount Int      @default(0)
+  threadId      String
+  thread        thread   @relation(fields: [threadId], references: [id])
+  author        User     @relation(fields: [userId], references: [id])
 }
