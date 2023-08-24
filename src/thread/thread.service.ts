@@ -180,61 +180,7 @@ export class ThreadService {
     }
   }
 
-  // async toggleLikeThread(threadId: string, userId: string) {
-  //   const user = await this.prisma.user.findUnique({
-  //     where: {
-  //       id: userId,
-  //     },
-  //   });
 
-  //   if (!user) {
-  //     throw new Error('User not found');
-  //   }
-
-  //   const isLiked = user.likedThreads.includes(threadId);
-
-  //   if (isLiked) {
-  //     // User has already liked the thread, so dislike it
-  //     await this.prisma.user.update({
-  //       where: {
-  //         id: userId,
-  //       },
-  //       data: {
-  //         likedThreads: user.likedThreads.filter((likedThreadId) => likedThreadId !== threadId),
-  //       },
-  //     });
-  //     await this.prisma.thread.update({
-  //       where: {
-  //         id: threadId,
-  //       },
-  //       data: {
-  //         reactionCount: {
-  //           decrement: 1,
-  //         },
-  //       },
-  //     });
-  //   } else {
-  //     // User has not liked the thread, so like it
-  //     await this.prisma.user.update({
-  //       where: {
-  //         id: userId,
-  //       },
-  //       data: {
-  //         likedThreads: [...user.likedThreads, threadId],
-  //       },
-  //     });
-  //     await this.prisma.thread.update({
-  //       where: {
-  //         id: threadId,
-  //       },
-  //       data: {
-  //         reactionCount: {
-  //           increment: 1,
-  //         },
-  //       },
-  //     });
-  //   }
-  // }
 
   async likeThread(threadId: string, updateUser: User) {
     const user = await this.prisma.user.findFirst({

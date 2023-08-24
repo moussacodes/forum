@@ -14,21 +14,23 @@ model User {
   username        String    @unique
   email           String    @unique
   hashedPassword  String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @default(now()) @updatedAt
+  createdAt       DateTime? @default(now())
+  updatedAt       DateTime? @default(now()) @updatedAt
   localization    String?
   refreshToken    String?
-  verified        Boolean   @default(false)
-  badge           Int       @default(0)
-  socialLinks     String[]  @default([])
-  likedThreads    String[]  @default([])
+  verified        Boolean?  @default(false)
+  badge           Int?      @default(autoincrement())
+  socialLinks     String[]
+  likedThreads    String[]
   dislikedThreads String[]
-  likedComments   String[]  @default([])
-  coments         Comment[]
-  threads         thread[]
+  likedComments   String[]
+  followers       User[]    @relation("users")
+  following       User[]    @relation("users")
+  Thread          Thread[]
+  Comment         Comment[]
 }
 
-model thread {
+model Thread {
   id            String    @id @unique @default(cuid())
   title         String
   createdAt     DateTime  @default(now())
@@ -54,6 +56,6 @@ model Comment {
   userId        String
   reactionCount Int      @default(0)
   threadId      String
-  thread        thread   @relation(fields: [threadId], references: [id])
+  thread        Thread   @relation(fields: [threadId], references: [id])
   author        User     @relation(fields: [userId], references: [id])
 }
