@@ -11,21 +11,34 @@ import { User } from '@prisma/client';
 export class ThreadService {
   constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
-  async updateThread(updateThread: UpdateThreadDto, id: string) {
+  async updateThread(
+    updateThread: UpdateThreadDto,
+    id: string,
+    userId: string,
+  ) {
     try {
-      const thread = await this.prisma.thread.update({
+      const findThread = await this.prisma.thread.findFirst({
         where: {
           id,
         },
-        data: {
-          title: updateThread.title,
-          content: updateThread.content,
-          tags: updateThread.topics,
-          modified: true,
-          //set modified to true, after starting the database
-        },
       });
-      return thread;
+      if (findThread.userId === userId) {
+        const thread = await this.prisma.thread.update({
+          where: {
+            id,
+          },
+          data: {
+            title: updateThread.title,
+            content: updateThread.content,
+            tags: updateThread.topics,
+            modified: true,
+            //set modified to true, after starting the database
+          },
+        });
+        return thread;
+      } else {
+        throw "you don't have the authorization to edit this thread";
+      }
     } catch (error) {
       throw new Error(`Error retrieving threads: ${error.message}`);
     }
@@ -58,10 +71,10 @@ export class ThreadService {
           username,
         },
         include: {
-          threads: true,
+          Thread: true,
         },
       });
-      return user.threads;
+      return user.Thread;
     } catch (error) {
       throw new Error(`Error retrieving threads: ${error.message}`);
     }
@@ -103,14 +116,18 @@ export class ThreadService {
     }
   }
 
-  async deleteThread(id: string) {
+  async deleteThread(id: string, userId: string) {
     try {
-      const thread = await this.prisma.thread.delete({
+      const thread = await this.prisma.thread.findFirst({
         where: {
           id,
+          userId,
         },
       });
-      return 'thread was deleted succesfully';
+
+      return {
+        response: 'thread was deleted succesfully',
+      };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P1008') {

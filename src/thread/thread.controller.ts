@@ -30,9 +30,10 @@ export class ThreadController {
   @Patch(':id')
   async updateThread(
     @Param('id') id: string,
+    @GetUser("id") userId: string,
     @Body() updateThreadDto: UpdateThreadDto,
   ): Promise<Thread> {
-    return await this.threadService.updateThread(updateThreadDto, id);
+    return await this.threadService.updateThread(updateThreadDto, id, userId);
   }
 
   @Get(':id')
@@ -58,8 +59,8 @@ export class ThreadController {
   }
 
   @Delete(':id')
-  async deleteThread(@Param('id') id: string) {
-    return await this.threadService.deleteThread(id);
+  async deleteThread(@Param('id') id: string, @GetUser('id') userId: string) {
+    return await this.threadService.deleteThread(id, userId);
   }
 
   //PAGINATION

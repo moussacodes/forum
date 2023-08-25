@@ -18,6 +18,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AcessTokenGuard } from './auth/guards';
 import { VerifModule } from './verif/verif.module';
 import { BadgeModule } from './badge/badge.module';
+import { RoleGuard } from './user/guards/user.guard';
 
 @Module({
   imports: [
@@ -31,7 +32,11 @@ import { BadgeModule } from './badge/badge.module';
     BadgeModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: AcessTokenGuard }],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: AcessTokenGuard },
+    { provide: APP_GUARD, useClass: RoleGuard },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

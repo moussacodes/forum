@@ -90,14 +90,25 @@ export class CommentService {
     }
   }
 
-  async deleteComment(commentId: string) {
+  async deleteComment(commentId: string, userId) {
     try {
-      const comment = await this.prisma.comment.delete({
+      const comment = await this.prisma.comment.findFirst({
         where: {
           id: commentId,
         },
       });
-      return 'comment was deleted succesfully';
+      if (comment.userId === userId) {
+        await this.prisma.comment.delete({
+          where: {
+            id: commentId,
+          },
+        });
+        return { message: 'comment was deleted succesfully' };
+      } else {
+        return {
+          message: "you don't have the authorization to delete this comment",
+        };
+      }
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P1008') {
@@ -111,18 +122,33 @@ export class CommentService {
     }
   }
 
-  async updateComment(comentDto: UpdateCommentDto, commentId: string) {
+  async updateComment(
+    comentDto: UpdateCommentDto,
+    commentId: string,
+    userId: string,
+  ) {
     try {
-      const coments = this.prisma.comment.update({
+      const findComment = await this.prisma.comment.findFirst({
         where: {
           id: commentId,
         },
-        data: {
-          content: comentDto.content,
-          modified: true,
-        },
       });
-      return coments;
+      if (findComment.userId === userId) {
+        await this.prisma.comment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            content: comentDto.content,
+            modified: true,
+          },
+        });
+        return { message: 'the comment was updated' };
+      } else {
+        return {
+          message: "you don't have the authorization to update the comment",
+        };
+      }
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P1008') {

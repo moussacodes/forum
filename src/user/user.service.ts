@@ -34,6 +34,7 @@ export class UserService {
   //   }
   // }
 
+ 
   async findOneByUserName(username: string) {
     try {
       const user = await this.prisma.user.findUnique({
@@ -68,6 +69,10 @@ export class UserService {
       }
       throw error;
     }
+  }
+
+  async deleteUser(userId: string){
+    
   }
 
   async getAllUser() {

@@ -40,13 +40,18 @@ export class CommentController {
   async updateComment(
     @Body() comentDto: UpdateCommentDto,
     @Param('commentId') commentId: string,
+    @GetUser('id') userId: string,
+
   ) {
-    return await this.commentService.updateComment(comentDto, commentId);
+    return await this.commentService.updateComment(comentDto, commentId,userId);
   }
 
   @Delete(':commentId')
-  async deleteComment(@Param('commentId') commentId: string) {
-    return await this.commentService.deleteComment(commentId);
+  async deleteComment(
+    @Param('commentId') commentId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return await this.commentService.deleteComment(commentId, userId);
   }
 
   @Post('like/:commentId')

@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt'; //maybe change it
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -24,23 +25,45 @@ export class AuthService {
     const hashedPassword = await this.hashPwd(dto.hashedPassword);
 
     try {
+      const newRole = await this.prisma.role.create({
+        data: {
+          name: 'ADMIN',
+        },
+      });
+
+      const newBadge = await this.prisma.badge.create({
+        data: {
+          name: 'STARTER',
+        },
+      });
+ 
+
+      // Create a new user and associate it with the user profile
       const user = await this.prisma.user.create({
         data: {
-          badge: 0,
           username: dto.username,
           email: dto.email,
           hashedPassword,
-          pfp: dto.pfp,
-          bio: dto.bio,
+          badge: {
+            connect: {
+              id: newBadge.id,
+            },
+          },
+          role: {
+            connect: {
+              id: newRole.id,
+            },
+          },
+          active: true,
+          score: 0
         },
       });
-      delete user.hashedPassword;
 
       const tokens = await this.signToken(user.id, user.email);
       await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
       return tokens;
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ForbiddenException('Credential taken');
         }
