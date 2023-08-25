@@ -95,13 +95,23 @@ export class ThreadService {
     }
   }
 
-  async getOneThread(id) {
+  async getOneThread(id: string) {
     try {
-      const thread = await this.prisma.thread.findUnique({
+      const thread = await this.prisma.thread.findFirst({
         where: {
           id,
         },
       });
+      if (thread) {
+        await this.prisma.thread.update({
+          where: {
+            id,
+          },
+          data: {
+            views: { increment: 1 },
+          },
+        });
+      }
       return thread;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {

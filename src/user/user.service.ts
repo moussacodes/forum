@@ -7,6 +7,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { UserDto } from './dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -34,7 +35,6 @@ export class UserService {
   //   }
   // }
 
- 
   async findOneByUserName(username: string) {
     try {
       const user = await this.prisma.user.findUnique({
@@ -71,8 +71,54 @@ export class UserService {
     }
   }
 
-  async deleteUser(userId: string){
-    
+  async deleteUser(userId: string, user: User) {
+    try {
+      if (userId != user.id) {
+        const delUser = await this.prisma.user.findFirst({
+          where: {
+            id: userId,
+          },
+        });
+        if (delUser) {
+          await this.prisma.comment.deleteMany({
+            where: {
+              userId,
+            },
+          });
+
+          await this.prisma.thread.deleteMany({
+            where: {
+              userId,
+            },
+          });
+
+          await this.prisma.badge.delete({
+            where: {
+              id: delUser.badgeId,
+            },
+          });
+
+          await this.prisma.role.deleteMany({
+            where: {
+              id: delUser.roleId,
+            },
+          });
+
+          const deletedUser = await this.prisma.user.delete({
+            where: {
+              id: userId,
+            },
+          });
+          return deletedUser;
+        } else {
+          throw 'user does not exist';
+        }
+      } else {
+        throw ' sorry you cannot delete yourself';
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getAllUser() {

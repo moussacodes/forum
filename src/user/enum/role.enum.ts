@@ -1,11 +1,10 @@
 export enum UserRole {
-    ADMIN = 'admin',
-    MODERATOR = 'moderator',
-    CONTRIBUTOR = 'contributor',
-    REGULAR_USER = 'regular_user',
-    NEW_USER = 'new_user',
-    BANNED_USER = 'banned_user',
-    BOT = 'bot',
-    MUTED_USER = 'muted_user',
-  }
-  
+  ADMIN = 'ADMIN',
+  MODERATOR = 'MODERATOR',
+  CONTRIBUTOR = 'CONTRIBUTOR',
+  REGULAR_USER = 'REGULAR_USER',
+  NEW_USER = 'NEW_USER',
+  BANNED_USER = 'BANNED_USER',
+  BOT = 'BOT',
+  MUTED_USER = 'MUTED_USER',
+}

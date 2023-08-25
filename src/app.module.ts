@@ -1,10 +1,13 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  CacheModule,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-// import { ThreadModule } from './thread/thread.module';
-// import { CommentModule } from './comment/comment.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { ThreadModule } from './thread/thread.module';
@@ -15,14 +18,26 @@ import { ThreadController } from './thread/thread.controller';
 import { UserController } from './user/user.controller';
 import cors from 'cors';
 import { APP_GUARD } from '@nestjs/core';
+import * as redisStore from 'cache-manager-redis-store';
 import { AcessTokenGuard } from './auth/guards';
 import { VerifModule } from './verif/verif.module';
 import { BadgeModule } from './badge/badge.module';
 import { RoleGuard } from './user/guards/user.guard';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // CacheModule.register({
+    //   store: redisStore,
+    //   socket:{
+    //     host: 'localhost',
+    //     port: 6379,
+    //   },
+    // }),
+    EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     AuthModule,
     UserModule,
     PrismaModule,

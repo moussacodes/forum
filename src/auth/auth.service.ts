@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt'; //maybe change it
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +36,6 @@ export class AuthService {
           name: 'STARTER',
         },
       });
- 
 
       // Create a new user and associate it with the user profile
       const user = await this.prisma.user.create({
@@ -55,14 +54,18 @@ export class AuthService {
             },
           },
           active: true,
-          score: 0
+          score: 0,
         },
       });
 
-      const tokens = await this.signToken(user.id, user.email);
-      await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
-      return tokens;
+      const role = await this.findRole(user);
+      if (role) {
+        const tokens = await this.signToken(user.id, user.email, role.name);
+        await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
+        return tokens;
+      }
     } catch (error) {
+      console.log(error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ForbiddenException('Credential taken');
@@ -89,20 +92,26 @@ export class AuthService {
     );
 
     if (!isMatch) throw new ForbiddenException('Credentials incorrect');
-    const tokens = await this.signToken(user.id, user.email);
-    await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
-    return tokens;
+
+    const role = await this.findRole(user);
+    if (role) {
+      const tokens = await this.signToken(user.id, user.email, role.name);
+      await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
+      return tokens;
+    }
   }
 
   async signToken(
     userId: string,
     email: string,
+    role,
   ): Promise<{ access_token: string; refresh_token: string }> {
     const secret = this.config.get('JWT_SECRET');
 
     const payload = {
       sub: userId,
       email,
+      role,
     };
 
     const [aceess_token, refresh_token] = await Promise.all([
@@ -161,10 +170,21 @@ export class AuthService {
         "You've been logged out, you need to log in again ",
       );
     }
+    const role = await this.findRole(user);
+    if (role) {
+      const tokens = await this.signToken(user.id, user.email, role.name);
+      await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
+      return tokens;
+    }
+  }
 
-    const tokens = await this.signToken(user.id, user.email);
-    await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
-    return tokens;
+  async findRole(user: User) {
+    const role = await this.prisma.role.findFirst({
+      where: {
+        id: user.roleId,
+      },
+    });
+    return role;
   }
 }
 

@@ -35,8 +35,8 @@ export class UserController {
 
   @Roles(UserRole.ADMIN)
   @Delete(':userId')
-  async deleteUser(@Param('userId') userId: string) {
-    return await this.userService.deleteUser(userId);
+  async deleteUser(@Param('userId') userId: string, @GetUser() user: User) {
+    return await this.userService.deleteUser(userId, user);
   }
 
   @Get()

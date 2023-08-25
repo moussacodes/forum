@@ -29,11 +29,11 @@ model User {
   badge            Badge?    @relation(fields: [badgeId], references: [id])
   roleId           String
   badgeId          String
-  Thread           Thread[]   
-  Comment          Comment[]  
+  Thread           Thread[]
+  Comment          Comment[]
   score            Int?
   active           Boolean
- }
+}
 
 model Thread {
   id            String    @id @unique @default(cuid())
@@ -67,7 +67,7 @@ model Comment {
 
 model Role {
   id          String   @id @unique @default(cuid())
-  name        UserRole @unique
+  name        UserRole
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   UserProfile User[]
@@ -87,7 +87,7 @@ enum UserRole {
 
 model Badge {
   id          String    @id @unique @default(cuid())
-  name        UserBadge @unique
+  name        UserBadge
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   UserProfile User[]
