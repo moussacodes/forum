@@ -180,8 +180,6 @@ export class ThreadService {
     }
   }
 
-
-
   async likeThread(threadId: string, updateUser: User) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -189,67 +187,6 @@ export class ThreadService {
       },
       select: {
         likedThreads: true,
-      },
-    });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    if (!user.likedThreads.includes(threadId)) {
-      // User has not liked the thread, so like it
-      await this.prisma.user.update({
-        where: {
-          id: updateUser.id,
-          email: updateUser.email,
-          username: updateUser.username,
-        },
-        data: {
-          likedThreads: [...user.likedThreads, threadId],
-        },
-      });
-      await this.prisma.thread.update({
-        where: {
-          id: threadId,
-        },
-        data: {
-          reactionCount: {
-            increment: 1,
-          },
-        },
-      });
-    } else {
-      await this.prisma.user.update({
-        where: {
-          id: updateUser.id,
-          email: updateUser.email,
-          username: updateUser.username,
-        },
-        data: {
-          likedThreads: user.likedThreads.filter(
-            (likedThreadId) => likedThreadId !== threadId,
-          ),
-        },
-      });
-      await this.prisma.thread.update({
-        where: {
-          id: threadId,
-        },
-        data: {
-          reactionCount: {
-            decrement: 1,
-          },
-        },
-      });
-    }
-  }
-
-  async dislikeThread(threadId: string, updateUser: User) {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        id: updateUser.id,
-      },
-      select: {
         dislikedThreads: true,
       },
     });
@@ -259,7 +196,6 @@ export class ThreadService {
     }
 
     if (user.dislikedThreads.includes(threadId)) {
-      // User has disliked the thread, so undislike it
       await this.prisma.user.update({
         where: {
           id: updateUser.id,
@@ -270,6 +206,7 @@ export class ThreadService {
           dislikedThreads: user.dislikedThreads.filter(
             (dislikedThreadId) => dislikedThreadId !== threadId,
           ),
+          likedThreads: [...user.likedThreads, threadId],
         },
       });
       await this.prisma.thread.update({
@@ -278,11 +215,77 @@ export class ThreadService {
         },
         data: {
           reactionCount: {
-            increment: 1,
+            increment: 2,
           },
         },
       });
     } else {
+      if (!user.likedThreads.includes(threadId)) {
+        // User has not liked the thread, so like it
+        await this.prisma.user.update({
+          where: {
+            id: updateUser.id,
+            email: updateUser.email,
+            username: updateUser.username,
+          },
+          data: {
+            likedThreads: { set: [...user.likedThreads, threadId] },
+          },
+        });
+        await this.prisma.thread.update({
+          where: {
+            id: threadId,
+          },
+          data: {
+            reactionCount: {
+              increment: 1,
+            },
+          },
+        });
+      } else {
+        await this.prisma.user.update({
+          where: {
+            id: updateUser.id,
+            email: updateUser.email,
+            username: updateUser.username,
+          },
+          data: {
+            likedThreads: user.likedThreads.filter(
+              (likedThreadId) => likedThreadId !== threadId,
+            ),
+          },
+        });
+        await this.prisma.thread.update({
+          where: {
+            id: threadId,
+          },
+          data: {
+            reactionCount: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+    }
+  }
+
+  async dislikeThread(threadId: string, updateUser: User) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: updateUser.id,
+      },
+      select: {
+        dislikedThreads: true,
+        likedThreads: true,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    // User has liked the thread, so unlike it + dislike it
+
+    if (user.likedThreads.includes(threadId)) {
       await this.prisma.user.update({
         where: {
           id: updateUser.id,
@@ -290,7 +293,10 @@ export class ThreadService {
           username: updateUser.username,
         },
         data: {
-          dislikedThreads: [...user.dislikedThreads, threadId],
+          likedThreads: user.likedThreads.filter(
+            (likedThreadId) => likedThreadId !== threadId,
+          ),
+          dislikedThreads: { set: [...user.dislikedThreads, threadId] },
         },
       });
       await this.prisma.thread.update({
@@ -299,13 +305,59 @@ export class ThreadService {
         },
         data: {
           reactionCount: {
-            decrement: 1,
+            decrement: 2,
           },
         },
       });
+    } else {
+      if (user.dislikedThreads.includes(threadId)) {
+        // User has disliked the thread, so undislike it
+        await this.prisma.user.update({
+          where: {
+            id: updateUser.id,
+            email: updateUser.email,
+            username: updateUser.username,
+          },
+          data: {
+            dislikedThreads: user.dislikedThreads.filter(
+              (dislikedThreadId) => dislikedThreadId !== threadId,
+            ),
+          },
+        });
+        await this.prisma.thread.update({
+          where: {
+            id: threadId,
+          },
+          data: {
+            reactionCount: {
+              increment: 1,
+            },
+          },
+        });
+      } else {
+        await this.prisma.user.update({
+          where: {
+            id: updateUser.id,
+            email: updateUser.email,
+            username: updateUser.username,
+          },
+          data: {
+            dislikedThreads: [...user.dislikedThreads, threadId],
+          },
+        });
+        await this.prisma.thread.update({
+          where: {
+            id: threadId,
+          },
+          data: {
+            reactionCount: {
+              decrement: 1,
+            },
+          },
+        });
+      }
     }
   }
 }
-
 
 // implemented like, dislike, functionality, FINALLLLLLLY:!!!

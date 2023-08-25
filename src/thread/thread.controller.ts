@@ -15,7 +15,7 @@ import { ThreadDto } from './dto/thread.dto';
 import { ThreadService } from './thread.service';
 import { GetUser } from 'src/auth/decorators';
 import { UpdateThreadDto } from './dto';
-import { User, thread } from '@prisma/client';
+import { User, Thread } from '@prisma/client';
 
 @UseGuards(JwtGuard)
 @Controller('thread')
@@ -31,7 +31,7 @@ export class ThreadController {
   async updateThread(
     @Param('id') id: string,
     @Body() updateThreadDto: UpdateThreadDto,
-  ): Promise<thread> {
+  ): Promise<Thread> {
     return await this.threadService.updateThread(updateThreadDto, id);
   }
 
@@ -41,19 +41,19 @@ export class ThreadController {
   }
 
   @Get('date') //yyyy-mm-dd
-  async getAllThreadsOfLastWeek(): Promise<thread[]> {
+  async getAllThreadsOfLastWeek(): Promise<Thread[]> {
     return await this.threadService.getAllThreadsOfLastWeek();
   }
 
   @Get('tag/:tag')
-  async getAllThreadsByTag(@Param('tag') tag: string): Promise<thread[]> {
+  async getAllThreadsByTag(@Param('tag') tag: string): Promise<Thread[]> {
     return await this.threadService.getAllThreadsByTag(tag);
   }
 
   @Get('user/:username') //yyyy-mm-dd
   async getAllThreadsByUser(
     @Param('username') username: string,
-  ): Promise<thread[]> {
+  ): Promise<Thread[]> {
     return await this.threadService.getAllThreadsByUser(username);
   }
 
@@ -67,15 +67,12 @@ export class ThreadController {
   @Get('page/:pageNb')
   async getAllThreads(
     @Param('pageNb', ParseIntPipe) pageNb: number,
-  ): Promise<thread[]> {
+  ): Promise<Thread[]> {
     return await this.threadService.getAllThreads(pageNb);
   }
 
   @Post('like/:threadId')
-  async likeThread(
-    @Param('threadId') threadId: string,
-    @GetUser() user: User,
-  ) {
+  async likeThread(@Param('threadId') threadId: string, @GetUser() user: User) {
     return await this.threadService.likeThread(threadId, user);
   }
 

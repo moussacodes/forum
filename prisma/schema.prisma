@@ -8,26 +8,27 @@ datasource db {
 }
 
 model User {
-  id              String    @id @unique @default(cuid())
-  pfp             String?
-  bio             String?
-  username        String    @unique
-  email           String    @unique
-  hashedPassword  String
-  createdAt       DateTime? @default(now())
-  updatedAt       DateTime? @default(now()) @updatedAt
-  localization    String?
-  refreshToken    String?
-  verified        Boolean?  @default(false)
-  badge           Int?      @default(autoincrement())
-  socialLinks     String[]
-  likedThreads    String[]
-  dislikedThreads String[]
-  likedComments   String[]
-  followers       User[]    @relation("users")
-  following       User[]    @relation("users")
-  Thread          Thread[]
-  Comment         Comment[]
+  id               String    @id @unique @default(cuid())
+  pfp              String?
+  bio              String?
+  username         String    @unique
+  email            String    @unique
+  hashedPassword   String
+  createdAt        DateTime? @default(now())
+  updatedAt        DateTime? @default(now()) @updatedAt
+  localization     String?
+  refreshToken     String?
+  verified         Boolean?  @default(false)
+  badge            Int?      @default(autoincrement())
+  socialLinks      String[]
+  likedThreads     String[]
+  dislikedThreads  String[]
+  likedComments    String[]
+  dislikedComments String[]
+  followers        User[]    @relation("users")
+  following        User[]    @relation("users")
+  threads          Thread[]
+  comment          Comment[]
 }
 
 model Thread {

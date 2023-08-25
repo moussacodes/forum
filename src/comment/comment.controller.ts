@@ -15,6 +15,7 @@ import { GetThread } from 'src/thread/decorators';
 import { CommentService } from './comment.service';
 import { CommentDto } from './dto';
 import { UpdateCommentDto } from './dto/updatecomment.dto';
+import { User } from '@prisma/client';
 
 @UseGuards(JwtGuard)
 @Controller('comments')
@@ -25,9 +26,9 @@ export class CommentController {
   async creatComment(
     @Body() coment: CommentDto,
     @Param('threadId') threadId: string,
-    @GetUser('id') id: string,
+    @GetUser() user: User,
   ) {
-    return await this.commentService.creatComment(coment, threadId, id);
+    return await this.commentService.creatComment(coment, threadId, user);
   }
 
   @Get(':threadId')
@@ -41,5 +42,26 @@ export class CommentController {
     @Param('commentId') commentId: string,
   ) {
     return await this.commentService.updateComment(comentDto, commentId);
+  }
+
+  @Delete(':commentId')
+  async deleteComment(@Param('commentId') commentId: string) {
+    return await this.commentService.deleteComment(commentId);
+  }
+
+  @Post('like/:commentId')
+  async likeComment(
+    @Param('commentId') commentId: string,
+    @GetUser() user: User,
+  ) {
+    return await this.commentService.likeComment(commentId, user);
+  }
+
+  @Delete('like/:commentId')
+  async dislikeComment(
+    @Param('commentId') commentId: string,
+    @GetUser() user: User,
+  ) {
+    return await this.commentService.dislikeComment(commentId, user);
   }
 }
