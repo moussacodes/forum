@@ -41,6 +41,11 @@ export class ThreadController {
     return await this.threadService.getOneThread(id);
   }
 
+  @Get('/trendy')
+  async getTrendyThreads() {
+    return await this.threadService.retreiveTrendyThreads();
+  }
+
   @Get('date') //yyyy-mm-dd
   async getAllThreadsOfLastWeek(): Promise<Thread[]> {
     return await this.threadService.getAllThreadsOfLastWeek();

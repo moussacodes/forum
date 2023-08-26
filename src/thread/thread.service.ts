@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
-
+import { Cache } from 'cache-manager';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateThreadDto } from './dto';
 import { ThreadDto } from './dto/thread.dto';
 import { User } from '@prisma/client';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class ThreadService {
-  constructor(private prisma: PrismaService, private jwt: JwtService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async updateThread(
     updateThread: UpdateThreadDto,
@@ -53,7 +56,6 @@ export class ThreadService {
         where: {
           createdAt: {
             gte: oneWeekAgo,
-            lte: currentDate,
           },
         },
       });
@@ -62,6 +64,54 @@ export class ThreadService {
     } catch (error) {
       throw new Error(`Error retrieving threads: ${error.message}`);
     }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async getTrendyPosts() {
+    try {
+      const trendyThreads = (await this.getAllThreadsOfLastWeek())
+        .slice(0, 10)
+        .sort((a, b) => b.views - a.views);
+        await this.cacheManager.del('trendy_threads');
+        await this.cacheManager.set('trendy_threads', trendyThreads);
+    } catch (error) {}
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async getTheNewThreads() {
+    try {
+      const currentDate = new Date();
+      const oneDayAgo = new Date(currentDate);
+      oneDayAgo.setDate(currentDate.getDate() - 1);
+
+      const newThreads = (
+        await this.prisma.thread.findMany({
+          where: {
+            createdAt: {
+              gte: oneDayAgo,
+            },
+          },
+        })
+      )
+        .slice(0, 10)
+        .sort((a, b) => b.views - a.views);
+
+        await this.cacheManager.del('new_threads');
+        await this.cacheManager.set('new_threads', newThreads);
+
+    } catch (error) {}
+  }
+
+  async retreiveTrendyThreads() {
+    try {
+      return await this.cacheManager.get('trendy_threads');
+    } catch (error) {}
+  }
+
+  async retreiveTodayThreads() {
+    try {
+      return await this.cacheManager.get('new_threads');
+    } catch (error) {}
   }
 
   async getAllThreadsByUser(username: string) {
