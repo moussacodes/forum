@@ -53,11 +53,15 @@ export class UserService {
     }
   }
 
-  async getMe(userDto: UserDto) {
+  async getMe(userArg: User) {
     try {
       const user = await this.prisma.user.findFirst({
         where: {
-          email: userDto.email,
+          email: userArg.email,
+        },
+        include: {
+          role: true,
+          threads: true,
         },
       });
       return user;

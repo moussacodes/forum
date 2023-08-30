@@ -16,7 +16,7 @@ import { Request } from 'express';
 import { Tokens } from './types';
 import { AcessTokenGuard, RefreshTokenGuard } from './guards';
 import { GetUser, Public } from './decorators';
-
+  
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -36,7 +36,7 @@ export class AuthController {
   }
 
   // @UseGuards(AcessTokenGuard)   //will tell at guard to ignore authoriazation when it sees @Public()
-  @Post('logout')
+  @Post('/logout')
   @HttpCode(HttpStatus.OK)
   async logOut(@GetUser('sub') userId: string) {
     return await this.authService.logOut(userId);

@@ -5,6 +5,7 @@ import {
   Module,
   NestModule,
 } from '@nestjs/common';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -54,12 +55,18 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
         inject: [ConfigService],
       }),
     }),
-
+    // CorsModule.forRoot({
+    //   origin: ['http://localhost:3000'], // Allow requests from this origin
+    //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed HTTP methods
+    //   credentials: true, // Include cookies and HTTP authentication information
+    //   allowedHeaders: 'Content-Type,Authorization', // Allowed headers
+    // }),
     // CacheModule.register({
     //   store: require('cache-manager-redis-store'), // Use 'cache-manager-redis-store'
     //   host: 'localhost',
     //   port: 6379,
     // }),
+
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     AuthModule,
@@ -85,7 +92,7 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(cors, helmet())
+      .apply(cors,  helmet())
       .forRoutes(AuthController, ThreadController, UserController);
   }
 }

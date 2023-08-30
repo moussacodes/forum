@@ -8,35 +8,37 @@ datasource db {
 }
 
 model User {
-  id               String    @id @unique @default(cuid())
+  id               String    @id @unique @default(cuid()) // Use auto() for auto-incremented IDs if supported
   username         String    @unique
   email            String    @unique
-  createdAt        DateTime? @default(now())
-  updatedAt        DateTime? @default(now()) @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
   verified         Boolean?  @default(false)
   muted            Boolean?  @default(false)
-  hashedPassword   String?
-  refreshToken     String?
+  hashedPassword   String? // Store hashed passwords securely
+  refreshToken     String? // Handle refresh tokens securely
   lastLogin        DateTime  @default(now())
   pfp              String?
   bio              String?
-  socialLinks      String[]  @default([])
-  likedThreads     String[]  @default([])
+  socialLinks      String[]  @default([]) // Array to store social links
+  likedThreads     String[]  @default([]) // Arrays to store liked/disliked items
   dislikedThreads  String[]  @default([])
   likedComments    String[]  @default([])
   dislikedComments String[]  @default([])
-  role             Role      @relation(fields: [roleId], references: [id])
-  badge            Badge?    @relation(fields: [badgeId], references: [id])
   roleId           String
   badgeId          String
-  Thread           Thread[]
-  Comment          Comment[]
-  score            Int?
+  role             Role      @relation(fields: [roleId], references: [id])
+  badge            Badge?    @relation(fields: [badgeId], references: [id])
+  followers        User[]    @relation("Followers")
+  following        User[]    @relation("Followers")
+  threads          Thread[] // You might consider renaming this to 'authoredThreads'
+  comments         Comment[] // You might consider renaming this to 'authoredComments'
+  score            Int? // You might want to add more context or documentation for this field
   active           Boolean
 }
 
 model Thread {
-  id            String    @id @unique @default(cuid())
+  id            String    @id @unique @default(cuid()) // Use auto() for auto-incremented IDs if supported
   title         String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -47,13 +49,13 @@ model Thread {
   userId        String
   views         Int       @default(0)
   featured      Boolean   @default(false)
-  statues       String    @default("open")
-  coments       Comment[]
+  status        String    @default("open") // Corrected typo: 'statues' to 'status'
+  comments      Comment[]
   author        User      @relation(fields: [userId], references: [id])
 }
 
 model Comment {
-  id            String   @id @unique @default(cuid())
+  id            String   @id @unique @default(cuid()) // Use auto() for auto-incremented IDs if supported
   content       String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -66,11 +68,11 @@ model Comment {
 }
 
 model Role {
-  id          String   @id @unique @default(cuid())
-  name        UserRole
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  UserProfile User[]
+  id        String   @id @unique @default(cuid()) // Use auto() for auto-incremented IDs if supported
+  name      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[] // You might consider renaming this to 'userProfiles'
 }
 
 enum UserRole {
@@ -86,11 +88,11 @@ enum UserRole {
 }
 
 model Badge {
-  id          String    @id @unique @default(cuid())
-  name        UserBadge
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  UserProfile User[]
+  id        String    @id @unique @default(cuid()) // Use auto() for auto-incremented IDs if supported
+  name      UserBadge
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  users     User[] // You might consider renaming this to 'userProfiles'
 }
 
 enum UserBadge {
@@ -103,5 +105,5 @@ enum UserBadge {
   EVENT_ORGANIZER
   BADGE_COLLECTOR
   THREAD_CHAMPION
-  FEATURED_THREAD_
+  FEATURED_THREAD
 }

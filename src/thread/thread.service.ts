@@ -121,10 +121,10 @@ export class ThreadService {
           username,
         },
         include: {
-          Thread: true,
+          threads: true,
         },
       });
-      return user.Thread;
+      return user.threads;
     } catch (error) {
       throw new Error(`Error retrieving threads: ${error.message}`);
     }
@@ -212,7 +212,7 @@ export class ThreadService {
         data: {
           title: threadDto.title,
           content: threadDto.content,
-          coments: undefined,
+          comments: undefined,
           tags: threadDto.topics,
           userId: user.id,
           views: 0,

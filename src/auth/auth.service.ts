@@ -22,47 +22,68 @@ export class AuthService {
   }
 
   async signup(dto: SignupDto) {
-    const hashedPassword = await this.hashPwd(dto.hashedPassword);
-
     try {
-      const newRole = await this.prisma.role.create({
-        data: {
-          name: 'ADMIN',
-        },
+      const userEmailExist = await this.prisma.user.findFirst({
+        where: { email: dto.email },
       });
 
-      const newBadge = await this.prisma.badge.create({
-        data: {
-          name: 'STARTER',
-        },
+      const userUsernameExist = await this.prisma.user.findFirst({
+        where: { username: dto.username },
       });
+      if (!userEmailExist && !userUsernameExist) {
+        const hashedPassword = await this.hashPwd(dto.hashedPassword);
 
-      // Create a new user and associate it with the user profile
-      const user = await this.prisma.user.create({
-        data: {
-          username: dto.username,
-          email: dto.email,
-          hashedPassword,
-          badge: {
-            connect: {
-              id: newBadge.id,
-            },
+        const newRole = await this.prisma.role.create({
+          data: {
+            name: 'ADMIN',
           },
-          role: {
-            connect: {
-              id: newRole.id,
-            },
-          },
-          active: true,
-          score: 0,
-        },
-      });
+        });
 
-      const role = await this.findRole(user);
-      if (role) {
-        const tokens = await this.signToken(user.id, user.email, role.name);
-        await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
-        return tokens;
+        if (!newRole) {
+          throw "couldn't create role";
+        }
+
+        const newBadge = await this.prisma.badge.create({
+          data: {
+            name: 'STARTER',
+          },
+        });
+
+        if (!newBadge) {
+          throw "couldn't create badge";
+        }
+
+        const user = await this.prisma.user.create({
+          data: {
+            username: dto.username,
+            email: dto.email,
+            hashedPassword,
+            badge: {
+              connect: {
+                id: newBadge.id,
+              },
+            },
+            role: {
+              connect: {
+                id: newRole.id,
+              },
+            },
+            active: true,
+            score: 0,
+          },
+        });
+        if (!user) {
+          throw "couldn't create badge";
+        }
+
+        const role = await this.findRole(user);
+        if (role) {
+          const tokens = await this.signToken(user.id, user.email, role.name);
+          await this.updateRefreshTokenHash(user.id, tokens.refresh_token);
+          return tokens;
+        }
+      } else {
+        throw new ForbiddenException('Credential taken');
       }
     } catch (error) {
       console.log(error);

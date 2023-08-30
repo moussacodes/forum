@@ -37,7 +37,7 @@ export class CommentService {
           id: threadId,
         },
         data: {
-          coments: {
+          comments: {
             connect: { id: (await comments).id },
           },
         },
